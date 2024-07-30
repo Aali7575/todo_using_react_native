@@ -1,4 +1,4 @@
-import { StyleSheet, View, Dimensions, FlatList } from 'react-native'
+import { StyleSheet, View, Dimensions, FlatList, TouchableOpacity } from 'react-native'
 import React, { useState } from 'react'
 import { TextInput } from 'react-native'
 import { ButtonText, Button} from '@gluestack-ui/themed'
@@ -10,9 +10,24 @@ const ToDo = () => {
 
   const addTask = () => {
     if (newTask) {
-      setTasks([...tasks, newTask]);
+      setTasks([...tasks, { text: newTask, completed: false, deleted: false }]);
       setNewTask('');
     }
+  };
+
+  const toggleTaskCompletion = (index) => {
+    const updatedTasks = tasks.map((task, idx) => {
+      if (idx === index) {
+        return { ...task, completed: !task.completed };
+      }
+      return task;
+    });
+    setTasks(updatedTasks);
+  };
+
+  const deleteTask = (index) => {
+    const updatedTasks = tasks.filter((_, idx) => idx !== index);
+    setTasks(updatedTasks);
   };
 
   return (
@@ -23,7 +38,18 @@ const ToDo = () => {
       </Button>
       <FlatList
         data={tasks}
-        renderItem={({ item }) => <Text style={styles.task}>{item}</Text>}
+        renderItem={({ item, index }) => (
+          <View style={styles.task}>
+            <TouchableOpacity onPress={() => toggleTaskCompletion(index)}>
+              <Text style={[styles.taskText, { textDecorationLine: item.completed ? 'line-through' : 'none' }]}>
+                {item.text}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.deleteButton} onPress={() => deleteTask(index)}>
+              <Text style={styles.deleteButtonText}>X</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         keyExtractor={(item, index) => index.toString()}
       />
     </View>
@@ -73,5 +99,24 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  taskText: {
+    flex: 1,
+    fontSize: 16,
+  },
+  deleteButton: {
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'red',
+    borderRadius: 25,
+  },
+  deleteButtonText: {
+    color: 'white',
+    fontSize: 20,
   },
 })
